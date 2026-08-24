@@ -94,7 +94,6 @@ can read and write everything. This is intentional for a two-person shared archi
 an oversight. Real per-person accounts would need Supabase Auth added later if ever
 needed.
 
-structure
 archive-of-us/
 ├── index.html              ← entry point, dito naka-link ang fonts
 ├── package.json            ← listahan ng dependencies (React, Tailwind, atbp)
