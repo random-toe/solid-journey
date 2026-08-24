@@ -93,3 +93,33 @@ There's no per-person login — anyone with the deployed link and the app's Supa
 can read and write everything. This is intentional for a two-person shared archive, not
 an oversight. Real per-person accounts would need Supabase Auth added later if ever
 needed.
+
+structure
+archive-of-us/
+├── index.html              ← entry point, dito naka-link ang fonts
+├── package.json            ← listahan ng dependencies (React, Tailwind, atbp)
+├── vite.config.js          ← config para sa build tool
+├── tailwind.config.js      ← dito nakadeclare yung colors mo (gold, ink, paper, atbp)
+├── postcss.config.js
+├── .env                    ← dito nakatago ang Supabase URL + key mo
+├── .gitignore
+│
+└── src/
+    ├── main.jsx             ← nagsisimula dito ang app
+    ├── App.jsx               ← "traffic controller" — asan yung 5 tabs, alin ang active
+    ├── index.css             ← Tailwind setup + heart animation
+    ├── supabaseClient.js     ← connection papunta sa database mo
+    ├── utils.js              ← date formatting, countdown calculations
+    │
+    ├── components/
+    │   ├── Nav.jsx            ← yung 5 tabs sa itaas (Home, Scrapbook, Letters, Story, Time)
+    │   ├── MemoryCard.jsx     ← yung polaroid card, ginagamit sa Home AT Scrapbook
+    │   ├── MemoryModal.jsx    ← yung "Add a memory" popup form
+    │   └── Onboarding.jsx     ← yung unang "ilagay pangalan niyo" popup
+    │
+    └── pages/
+        ├── Home.jsx           ← main page (timeline lang, walang letters)
+        ├── Scrapbook.jsx      ← buong scrapbook panel
+        ├── Letters.jsx        ← letters panel
+        ├── Story.jsx          ← "how we met" panel
+        └── Time.jsx           ← timer, countdown, tap-tap hearts
