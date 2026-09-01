@@ -10,7 +10,12 @@
   }
 
   body {
-    @apply bg-ink text-paper font-sans;
+    @apply text-paper font-sans;
+    background:
+      radial-gradient(circle at 15% 8%, rgba(201, 123, 132, 0.10), transparent 45%),
+      radial-gradient(circle at 85% 0%, rgba(167, 159, 199, 0.10), transparent 40%),
+      #211f2e;
+    background-attachment: fixed;
     -webkit-tap-highlight-color: transparent;
   }
 }

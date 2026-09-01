@@ -52,7 +52,7 @@ function Wizard({ onWizardComplete }) {
   }
 
   return (
-    <div className="min-h-screen bg-ink flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="bg-ink-light rounded-3xl w-full max-w-sm p-8 text-center">
         <p className="text-xs tracking-[0.2em] uppercase text-rose font-semibold mb-3">
           a little archive of us
@@ -60,7 +60,7 @@ function Wizard({ onWizardComplete }) {
 
         {step === 1 && (
           <Step
-            title="what's your name?"
+            title="sino ka?"
             value={yourName}
             onChange={setYourName}
             placeholder="Your name"
@@ -71,7 +71,7 @@ function Wizard({ onWizardComplete }) {
 
         {step === 2 && (
           <Step
-            title="what's your partner's name?"
+            title="sino partner mo?"
             value={partnerName}
             onChange={setPartnerName}
             placeholder="Partner's name"
@@ -173,7 +173,7 @@ function IdentityGate({ settings, onIdentityPicked }) {
         <p className="text-xs tracking-[0.2em] uppercase text-rose font-semibold mb-3">
           a little archive of us
         </p>
-        <h1 className="font-serif text-2xl mb-6">who are you?</h1>
+        <h1 className="font-serif text-2xl mb-6">sino ka?</h1>
 
         <div className="space-y-3">
           {names.map((name) => (

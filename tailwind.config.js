@@ -9,24 +9,28 @@ export default {
       colors: {
         // dark, slightly purple-tinted background
         ink: {
-          DEFAULT: "#1a1625",
-          light: "#241f33",
-          dark: "#120f1a",
+          DEFAULT: "#211f2e",
+          light: "#2a283c",
+          dark: "#181725",
         },
         // gold accent — buttons, highlights, the "&" between names
         gold: {
-          DEFAULT: "#d4a24c",
+          DEFAULT: "#d8a657",
           light: "#e6c17a",
-          dark: "#b8842f",
+          dark: "#b98c4a",
         },
         // cream/paper color for scrapbook + letter cards
         paper: {
-          DEFAULT: "#f5ede0",
-          light: "#faf5ec",
+          DEFAULT: "#f4eee4",
+          light: "#f2eae0",
         },
-        // muted rose for the tap-tap button on the Time panel
+        // muted rose for the tap-tap button + eyebrow labels
         rose: {
-          DEFAULT: "#e88ca0",
+          DEFAULT: "#c97b84",
+        },
+        // used sparingly in the corner color-wash on the background
+        lavender: {
+          DEFAULT: "#a79fc7",
         },
       },
       fontFamily: {
