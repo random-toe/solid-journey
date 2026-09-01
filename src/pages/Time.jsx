@@ -5,7 +5,6 @@ export default function Time({ settings }) {
   const [together, setTogether] = useState(null)
   const [hearts, setHearts] = useState([])
   const heartIdRef = useRef(0)
-  const containerRef = useRef(null)
 
   const nextAnniversary = settings?.since
     ? getNextAnniversary(settings.since)
@@ -23,9 +22,8 @@ export default function Time({ settings }) {
   }, [settings?.since])
 
   function handleTapTap(e) {
-    const rect = containerRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    const x = e.clientX
+    const y = e.clientY
 
     const id = heartIdRef.current++
     const emoji = ['💛', '💫', '✨'][Math.floor(Math.random() * 3)]
@@ -39,7 +37,7 @@ export default function Time({ settings }) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-5 pt-10 pb-16">
+     <div className="max-w-3xl mx-auto px-5 pt-16 sm:pt-20 pb-16">
       <h1 className="font-serif text-2xl mb-6 text-center">Time</h1>
 
       <div className="bg-ink-light rounded-2xl p-8 text-center">
@@ -75,16 +73,15 @@ export default function Time({ settings }) {
         )}
       </div>
 
-      {/* ── Tap-tap hearts ─────────────────────── */}
+      {/* ── Tap-tap hearts — floats across the whole background ── */}
       <div
-        ref={containerRef}
         onClick={handleTapTap}
-        className="relative mt-6 bg-ink-light rounded-2xl h-56 flex items-center justify-center overflow-hidden cursor-pointer select-none"
+        className="fixed inset-0 z-0 cursor-pointer select-none"
       >
         {hearts.map((heart) => (
           <span
             key={heart.id}
-            className="floating-heart text-2xl"
+            className="floating-heart text-3xl opacity-70"
             style={{
               left: heart.x,
               top: heart.y,
@@ -94,15 +91,14 @@ export default function Time({ settings }) {
             {heart.emoji}
           </span>
         ))}
+      </div>
 
+      <div className="relative z-10 mt-16 flex justify-center">
         <button
-          onClick={(e) => {
-            e.stopPropagation()
-            handleTapTap(e)
-          }}
-          className="bg-rose text-ink font-semibold text-sm px-6 py-3 rounded-full pointer-events-auto"
+          onClick={handleTapTap}
+          className="bg-rose text-ink font-semibold text-sm px-6 py-3 rounded-full"
         >
-          💗 tap tap
+          tap
         </button>
       </div>
     </div>
