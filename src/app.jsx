@@ -3,8 +3,8 @@ import { supabase } from './supabaseClient'
 import { getSavedIdentity, saveIdentity } from './utils'
 
 import Onboarding from './components/Onboarding.jsx'
-import Nav from './components/Nav.jsx'
-import Home from './pages/Home.jsx'
+import Navigation from './components/Navigation.jsx'
+import home from './pages/home.jsx'
 import Scrapbook from './pages/Scrapbook.jsx'
 import Letters from './pages/Letters.jsx'
 import Story from './pages/Story.jsx'
@@ -88,7 +88,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-ink text-paper pb-24">
       <main>{pages[activeTab]}</main>
-      <Nav active={activeTab} onChange={setActiveTab} />
+      <Navigation active={activeTab} onChange={setActiveTab} />
     </div>
   )
 }
