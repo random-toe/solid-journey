@@ -60,7 +60,7 @@ export default function Home({ settings, identity }) {
   const partnerTwo = settings?.partner_two_name || 'Partner Two'
 
   return (
-    <div className="max-w-2xl mx-auto px-5 pt-10 pb-16">
+    <div className="max-w-2xl mx-auto px-5 pt-16 sm:pt-20 pb-16">
       {/* ── Hero ─────────────────────────────── */}
       <div className="text-center">
         <p className="text-xs tracking-[0.2em] uppercase text-rose font-semibold mb-3">
@@ -73,7 +73,7 @@ export default function Home({ settings, identity }) {
 
         {identity && (
           <p className="mt-2 text-sm text-paper/60">
-            welcome back, {identity} 💛
+            welcome back, {identity}!
           </p>
         )}
 

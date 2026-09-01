@@ -12,8 +12,8 @@
   body {
     @apply text-paper font-sans;
     background:
-      radial-gradient(circle at 15% 8%, rgba(201, 123, 132, 0.10), transparent 45%),
-      radial-gradient(circle at 85% 0%, rgba(167, 159, 199, 0.10), transparent 40%),
+      radial-gradient(circle at 12% 6%, rgba(201, 123, 132, 0.28), transparent 65%),
+      radial-gradient(circle at 88% 0%, rgba(167, 159, 199, 0.28), transparent 50%),
       #211f2e;
     background-attachment: fixed;
     -webkit-tap-highlight-color: transparent;
