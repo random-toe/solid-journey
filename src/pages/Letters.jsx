@@ -51,7 +51,7 @@ export default function Letters() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-5 pt-16 sm:pt-20 pb-16">
+    <div className="max-w-3xl mx-auto px-5 pt-10 pb-16">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-serif text-2xl">Letters</h1>
         <button
