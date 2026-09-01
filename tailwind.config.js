@@ -27,6 +27,8 @@ export default {
         // muted rose for the tap-tap button + eyebrow labels
         rose: {
           DEFAULT: "#c97b84",
+          light: "#f7e3e6",
+          dark: "#8f4550",
         },
         // used sparingly in the corner color-wash on the background
         lavender: {

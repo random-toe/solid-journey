@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { formatDate } from '../utils'
+import DatePicker from '../components/DatePicker.jsx'
 
 export default function Letters() {
   const [letters, setLetters] = useState([])
@@ -50,7 +51,7 @@ export default function Letters() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-5 pt-10 pb-16">
+    <div className="max-w-2xl mx-auto px-5 pt-16 sm:pt-20 pb-16">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-serif text-2xl">Letters</h1>
         <button
@@ -157,13 +158,9 @@ function LetterForm({ letter, onClose, onSaved }) {
 
         <div>
           <label className="text-xs font-semibold text-ink/60">Date</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full mt-1 px-3 py-2 rounded-lg border border-ink/10 bg-paper-light focus:outline-none focus:ring-2 focus:ring-gold"
-            required
-          />
+          <div className="mt-1">
+            <DatePicker value={date} onChange={setDate} />
+          </div>
         </div>
 
         <div>

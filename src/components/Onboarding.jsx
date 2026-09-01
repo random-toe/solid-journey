@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import DatePicker from './DatePicker.jsx'
 
 export default function Onboarding({
   mode,
@@ -86,13 +87,7 @@ function Wizard({ onWizardComplete }) {
             <h1 className="font-serif text-2xl mb-1">kailan monthsary?</h1>
             <p className="text-xs text-paper/50 mb-5">the date it all started</p>
 
-            <input
-              type="date"
-              value={since}
-              onChange={(e) => setSince(e.target.value)}
-              className="w-full px-4 py-3 rounded-full bg-paper text-ink text-center focus:outline-none focus:ring-2 focus:ring-gold"
-              required
-            />
+            <DatePicker value={since} onChange={setSince} placeholder="Pick the date" />
 
             {error && <p className="text-xs text-red-400 mt-3">{error}</p>}
 
@@ -168,7 +163,7 @@ function IdentityGate({ settings, onIdentityPicked }) {
   )
 
   return (
-    <div className="min-h-screen bg-ink flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="bg-ink-light rounded-3xl w-full max-w-sm p-8 text-center">
         <p className="text-xs tracking-[0.2em] uppercase text-rose font-semibold mb-3">
           a little archive of us
