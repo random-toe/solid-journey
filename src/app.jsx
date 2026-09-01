@@ -4,7 +4,7 @@ import { getSavedIdentity, saveIdentity } from './utils'
 
 import Onboarding from './components/Onboarding.jsx'
 import Navigation from './components/Navigation.jsx'
-import home from './pages/home.jsx'
+import Home from './pages/home.jsx'
 import Scrapbook from './pages/Scrapbook.jsx'
 import Letters from './pages/Letters.jsx'
 import Story from './pages/Story.jsx'
@@ -50,7 +50,7 @@ export default function App() {
   // ── 2. Loading state ──────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-ink text-paper">
+      <div className="min-h-screen flex items-center justify-center text-paper">
         <p className="text-sm tracking-widest uppercase opacity-60">
           loading the archive...
         </p>
@@ -86,7 +86,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-ink text-paper pb-24">
+    <div className="min-h-screen text-paper pb-24">
       <main>{pages[activeTab]}</main>
       <Navigation active={activeTab} onChange={setActiveTab} />
     </div>
