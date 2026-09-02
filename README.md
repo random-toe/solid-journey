@@ -55,6 +55,26 @@ globally:
   (e.g. "Welcome back, Julith 💛") — it does **not** restrict or change any content;
   both partners see the same data.
 
+## Floating music player
+
+A small floating panel, visible on top of every panel (Home, Scrapbook, Letters,
+Story, Time) — not a tab of its own, more like a persistent mini-player that follows
+you around the app.
+
+- **Curated list only** — no search, no browsing a music library. Just the songs the
+  two of you have added, in order.
+- **Songs are links, not files** — YouTube or Spotify links you paste in yourselves
+  (embedded playback), not uploaded audio files. No Supabase Storage usage for this
+  feature.
+- **Controls**: Play/Pause, Next, Previous — cycles only through the curated list,
+  wrapping around at the start/end.
+- A simple "+ add a song" affordance to paste a new link + title into the list.
+- Mobile-friendly: collapses to a small floating bar that doesn't block panel content
+  or the bottom nav.
+
+### Data model addition
+- `songs` — title, url (YouTube/Spotify link), position (for ordering), added_at.
+
 ## Panels
 
 The app is organized around one main page plus four feature panels, switched by a
@@ -107,6 +127,8 @@ button/nav bar.
 - (Time panel needs no storage of its own — it's computed live from `settings.since`.)
 - (The identity gate needs no Supabase storage — it only reads the two names already
   in `settings`, and saves the visitor's pick locally via `localStorage`.)
+- `songs` — title, url (YouTube/Spotify link), position (order in the playlist).
+  Powers the floating music player. See "Floating music player" above.
 
 ## Project structure
 
@@ -133,6 +155,9 @@ archive-of-us/
     │   ├── Nav.jsx             — the 5 tabs (Home, Scrapbook, Letters, Story, Time)
     │   ├── MemoryCard.jsx      — the polaroid-style card, used in Home + Scrapbook
     │   ├── MemoryModal.jsx     — the "Add a memory" popup form
+    │   ├── DatePicker.jsx      — custom styled calendar dropdown (used wherever a
+    │   │                          date needs picking)
+    │   ├── MusicPlayer.jsx     — floating mini-player, visible on every panel
     │   └── Onboarding.jsx      — first-time 3-step setup wizard AND the
     │                              returning-visitor "who's opening this?" gate
     │
@@ -165,14 +190,15 @@ archive-of-us/
 
 - [x] Requirements defined (this document)
 - [x] Supabase project created, full schema (settings + story, memories, letters, storage)
-- [ ] React + Tailwind project scaffolded
-- [ ] Onboarding wizard (3-step first-time setup)
-- [ ] Identity gate ("who's opening this?" + localStorage)
-- [ ] Main page timeline (Scrapbook summary + greeting)
-- [ ] Scrapbook panel (full CRUD + photo upload)
-- [ ] Letters panel
-- [ ] Story panel
-- [ ] Time panel (timer, countdown, tap-tap hearts)
+- [x] React + Tailwind project scaffolded
+- [x] Onboarding wizard (3-step first-time setup)
+- [x] Identity gate ("who's opening this?" + localStorage)
+- [x] Main page timeline (Scrapbook summary + greeting)
+- [x] Scrapbook panel (full CRUD + photo upload)
+- [x] Letters panel
+- [x] Story panel
+- [x] Time panel (timer, countdown, tap-tap hearts)
+- [ ] Floating music player (curated YouTube/Spotify links, next/prev only)
 - [ ] Responsive pass for mobile browsers (iOS/Android)
 
 ## Notes on access
