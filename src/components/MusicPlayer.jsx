@@ -244,10 +244,10 @@ export default function MusicPlayer() {
         */}
         <div
           className={`overflow-hidden transition-all duration-300 ${
-            expanded ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'
+            expanded ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
-          <div className="px-3 pb-3">
+          <div className="px-3 pb-3 max-h-[80vh] overflow-y-auto">
             {provider === 'YouTube' && youtubeEmbedUrl && (
               <div className="rounded-lg overflow-hidden aspect-video bg-black">
                 <iframe
