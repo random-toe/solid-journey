@@ -4,6 +4,7 @@ import { getSavedIdentity, saveIdentity } from './utils'
 
 import Onboarding from './components/Onboarding.jsx'
 import Navigation from './components/Navigation.jsx'
+import MusicPlayer from './components/MusicPlayer.jsx'
 import Home from './pages/home.jsx'
 import Scrapbook from './pages/Scrapbook.jsx'
 import Letters from './pages/Letters.jsx'
@@ -88,6 +89,7 @@ export default function App() {
   return (
     <div className="min-h-screen text-paper pb-24">
       <main>{pages[activeTab]}</main>
+      <MusicPlayer />
       <Navigation active={activeTab} onChange={setActiveTab} />
     </div>
   )
