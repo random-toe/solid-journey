@@ -27,16 +27,22 @@ export default function MusicPlayer() {
   const [index, setIndex] = useState(0)
   const [expanded, setExpanded] = useState(false)
   const [isPlaying, setIsPlaying] = useState(true)
+
   const [showAddForm, setShowAddForm] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newUrl, setNewUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const youtubeIframeRef = useRef(null)
+  // YouTube — persistent player instance (created once, reused via loadVideoById)
+  const ytContainerRef = useRef(null)
+  const ytPlayerRef = useRef(null)
+  const ytApiReadyRef = useRef(false)
+
+  // Spotify — persistent controller instance (created once, reused via loadUri)
   const spotifyContainerRef = useRef(null)
-  const spotifyApiRef = useRef(null) // window's IFrameAPI, once script loads
-  const spotifyControllerRef = useRef(null) // active EmbedController
+  const spotifyApiRef = useRef(null)
+  const spotifyControllerRef = useRef(null)
 
   const current = songs[index] || null
   const provider = current ? detectProvider(current.url) : null
@@ -61,59 +67,127 @@ export default function MusicPlayer() {
     setSongs(data || [])
   }
 
-  // ── Reset "playing" state whenever the current song changes ──
+  // ══════════════════════════════════════════════════════
+  // YouTube — load the IFrame Player API once, keep ONE
+  // player instance alive for the whole session. Switching
+  // songs calls loadVideoById() on that same instance instead
+  // of destroying/recreating the iframe — this is what keeps
+  // autoplay working reliably on mobile after Next/Prev.
+  // ══════════════════════════════════════════════════════
   useEffect(() => {
-    setIsPlaying(true)
-  }, [index, songs.length])
+    if (window.YT && window.YT.Player) {
+      ytApiReadyRef.current = true
+      return
+    }
+    if (document.getElementById('youtube-iframe-api-script')) return
 
-  // ── Load the Spotify IFrame API script once ────────────
+    const tag = document.createElement('script')
+    tag.id = 'youtube-iframe-api-script'
+    tag.src = 'https://www.youtube.com/iframe_api'
+    document.body.appendChild(tag)
+
+    window.onYouTubeIframeAPIReady = () => {
+      ytApiReadyRef.current = true
+      // if a YouTube song is already current, create the player now
+      if (provider === 'YouTube' && youtubeId) {
+        createYtPlayer(youtubeId)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function createYtPlayer(videoId) {
+    if (!ytContainerRef.current || ytPlayerRef.current) return
+    ytPlayerRef.current = new window.YT.Player(ytContainerRef.current, {
+      videoId,
+      playerVars: { autoplay: 1, playsinline: 1 },
+      events: {
+        onReady: (e) => {
+          e.target.playVideo()
+        },
+        onStateChange: (e) => {
+          setIsPlaying(e.data === window.YT.PlayerState.PLAYING)
+        },
+      },
+    })
+  }
+
+  // Whenever the current song changes, tell the players to switch tracks
+  // (rather than remounting anything).
+  useEffect(() => {
+    if (!current) return
+
+    if (provider === 'YouTube' && youtubeId) {
+      // pause Spotify if it was playing
+      if (spotifyControllerRef.current) {
+        try {
+          spotifyControllerRef.current.pause()
+        } catch {}
+      }
+
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === 'function') {
+        ytPlayerRef.current.loadVideoById(youtubeId)
+      } else if (ytApiReadyRef.current) {
+        createYtPlayer(youtubeId)
+      }
+      // if API isn't ready yet, onYouTubeIframeAPIReady will pick it up
+    } else if (provider === 'Spotify' && spotifyInfo) {
+      // pause YouTube if it was playing
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        try {
+          ytPlayerRef.current.pauseVideo()
+        } catch {}
+      }
+      loadOrCreateSpotify(spotifyInfo)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.id])
+
+  // ══════════════════════════════════════════════════════
+  // Spotify — same idea: one persistent controller, reused
+  // via loadUri() when switching tracks.
+  // ══════════════════════════════════════════════════════
   useEffect(() => {
     if (window.Spotify_IFrameAPIReadyAttached) return
     window.Spotify_IFrameAPIReadyAttached = true
 
     window.onSpotifyIframeApiReady = (IFrameAPI) => {
       spotifyApiRef.current = IFrameAPI
+      if (provider === 'Spotify' && spotifyInfo) {
+        loadOrCreateSpotify(spotifyInfo)
+      }
     }
 
     const script = document.createElement('script')
     script.src = 'https://open.spotify.com/embed/iframe-api/v1'
     script.async = true
     document.body.appendChild(script)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── (Re)create the Spotify controller whenever the current Spotify track changes ──
-  useEffect(() => {
-    if (provider !== 'Spotify' || !spotifyInfo) return
+  function loadOrCreateSpotify(info) {
+    const uri = `spotify:${info.type}:${info.id}`
 
-    function createController() {
-      if (!spotifyApiRef.current || !spotifyContainerRef.current) return
-      spotifyContainerRef.current.innerHTML = '' // clear previous embed
-      spotifyApiRef.current.createController(
-        spotifyContainerRef.current,
-        { uri: `spotify:${spotifyInfo.type}:${spotifyInfo.id}` },
-        (controller) => {
-          spotifyControllerRef.current = controller
-          controller.addListener('ready', () => {
-            controller.play()
-          })
-        }
-      )
+    if (spotifyControllerRef.current) {
+      spotifyControllerRef.current.loadUri(uri)
+      spotifyControllerRef.current.play()
+      return
     }
 
-    if (spotifyApiRef.current) {
-      createController()
-    } else {
-      // API script hasn't loaded yet — poll briefly until it's ready
-      const interval = setInterval(() => {
-        if (spotifyApiRef.current) {
-          clearInterval(interval)
-          createController()
-        }
-      }, 200)
-      return () => clearInterval(interval)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current?.id, provider])
+    if (!spotifyApiRef.current || !spotifyContainerRef.current) return // not ready yet
+
+    spotifyApiRef.current.createController(
+      spotifyContainerRef.current,
+      { uri },
+      (controller) => {
+        spotifyControllerRef.current = controller
+        controller.addListener('ready', () => controller.play())
+        controller.addListener('playback_update', (e) => {
+          setIsPlaying(!e.data.isPaused)
+        })
+      }
+    )
+  }
 
   function handleNext() {
     if (songs.length === 0) return
@@ -128,23 +202,14 @@ export default function MusicPlayer() {
   function handlePlayPause() {
     if (!current) return
 
-    if (provider === 'YouTube') {
-      const win = youtubeIframeRef.current?.contentWindow
-      if (!win) return
-      win.postMessage(
-        JSON.stringify({
-          event: 'command',
-          func: isPlaying ? 'pauseVideo' : 'playVideo',
-          args: [],
-        }),
-        '*'
-      )
-      setIsPlaying((p) => !p)
-    } else if (provider === 'Spotify') {
-      if (spotifyControllerRef.current) {
-        spotifyControllerRef.current.togglePlay()
-        setIsPlaying((p) => !p)
+    if (provider === 'YouTube' && ytPlayerRef.current) {
+      if (isPlaying) {
+        ytPlayerRef.current.pauseVideo()
+      } else {
+        ytPlayerRef.current.playVideo()
       }
+    } else if (provider === 'Spotify' && spotifyControllerRef.current) {
+      spotifyControllerRef.current.togglePlay()
     }
   }
 
@@ -178,10 +243,6 @@ export default function MusicPlayer() {
     setShowAddForm(false)
     loadSongs()
   }
-
-  const youtubeEmbedUrl = youtubeId
-    ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&enablejsapi=1&playsinline=1`
-    : null
 
   return (
     <div className="fixed bottom-[64px] inset-x-0 z-30 flex justify-center px-4 pointer-events-none">
@@ -240,7 +301,9 @@ export default function MusicPlayer() {
           ── Media embeds ──────────────────────────────────
           Always mounted (never removed from the DOM) so playback
           keeps going even while collapsed — just visually hidden
-          via max-height/opacity instead of unmounting.
+          via max-height/opacity instead of unmounting. Same reason
+          both YT + Spotify containers stay in the DOM permanently:
+          destroying/recreating them is what broke autoplay-on-Next.
         */}
         <div
           className={`overflow-hidden transition-all duration-300 ${
@@ -248,23 +311,20 @@ export default function MusicPlayer() {
           }`}
         >
           <div className="px-3 pb-3 max-h-[80vh] overflow-y-auto">
-            {provider === 'YouTube' && youtubeEmbedUrl && (
-              <div className="rounded-lg overflow-hidden aspect-video bg-black">
-                <iframe
-                  ref={youtubeIframeRef}
-                  key={current.id}
-                  src={youtubeEmbedUrl}
-                  title={current.title}
-                  className="w-full h-full"
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                />
+            <div
+              className="rounded-lg overflow-hidden bg-black"
+              style={{ display: provider === 'YouTube' ? 'block' : 'none' }}
+            >
+              <div className="aspect-video">
+                <div ref={ytContainerRef} className="w-full h-full" />
               </div>
-            )}
+            </div>
 
-            {provider === 'Spotify' && (
-              <div ref={spotifyContainerRef} className="rounded-lg overflow-hidden" />
-            )}
+            <div
+              ref={spotifyContainerRef}
+              className="rounded-lg overflow-hidden"
+              style={{ display: provider === 'Spotify' ? 'block' : 'none' }}
+            />
 
             {!provider && (
               <p className="text-xs text-paper/40 text-center py-4">
