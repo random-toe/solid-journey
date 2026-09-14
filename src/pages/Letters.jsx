@@ -14,11 +14,14 @@ export default function Letters({ settings, identity }) {
     Boolean
   )
 
-  // Only show letters addressed to whoever is currently logged in.
-  // Letters saved before this feature existed have no recipient yet —
+  // Visible if: the current identity wrote it, OR it's addressed to them.
+  // Letters saved before this feature existed have no recipient/author yet —
   // those stay visible to everyone rather than disappearing.
   const visibleLetters = letters.filter(
-    (l) => !l.recipient || l.recipient === identity
+    (l) =>
+      (!l.recipient && !l.author) ||
+      l.author === identity ||
+      l.recipient === identity
   )
 
   useEffect(() => {
@@ -96,39 +99,47 @@ export default function Letters({ settings, identity }) {
         )}
 
         {!loading &&
-          visibleLetters.map((letter) => (
-            <div key={letter.id} className="p-4 flex items-start gap-3">
-              <span className="text-gold mt-0.5">✉️</span>
-              <button
-                onClick={() => handleViewClick(letter)}
-                className="flex-1 text-left"
-              >
-                <p className="font-semibold text-sm hover:text-gold transition-colors">
-                  {letter.title}
-                </p>
-                <p className="text-xs text-paper/50">{formatDate(letter.date)}</p>
-              </button>
-              <div className="flex gap-3 text-xs shrink-0 pt-0.5">
+          visibleLetters.map((letter) => {
+            const isAuthor = !letter.author || letter.author === identity
+            return (
+              <div key={letter.id} className="p-4 flex items-start gap-3">
+                <span className="text-gold mt-0.5">✉️</span>
                 <button
-                  onClick={() => handleEditClick(letter)}
-                  className="text-gold hover:underline"
+                  onClick={() => handleViewClick(letter)}
+                  className="flex-1 text-left"
                 >
-                  Edit
+                  <p className="font-semibold text-sm hover:text-gold transition-colors">
+                    {letter.title}
+                  </p>
+                  <p className="text-xs text-paper/50">{formatDate(letter.date)}</p>
                 </button>
-                <button
-                  onClick={() => handleRemove(letter.id)}
-                  className="text-rose hover:underline"
-                >
-                  Remove
-                </button>
+                {isAuthor ? (
+                  <div className="flex gap-3 text-xs shrink-0 pt-0.5">
+                    <button
+                      onClick={() => handleEditClick(letter)}
+                      className="text-gold hover:underline"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleRemove(letter.id)}
+                      className="text-rose hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-xs text-paper/30 shrink-0 pt-0.5">view only</span>
+                )}
               </div>
-            </div>
-          ))}
+            )
+          })}
       </div>
 
       {viewingLetter && (
         <LetterViewPanel
           letter={viewingLetter}
+          identity={identity}
           onClose={() => setViewingLetter(null)}
           onEdit={handleEditFromView}
         />
@@ -138,6 +149,7 @@ export default function Letters({ settings, identity }) {
         <LetterForm
           letter={editingLetter}
           partnerNames={partnerNames}
+          identity={identity}
           onClose={() => setShowForm(false)}
           onSaved={handleSaved}
         />
@@ -147,7 +159,9 @@ export default function Letters({ settings, identity }) {
 }
 
 // ── Read-only view panel — opened by tapping a letter's title ──
-function LetterViewPanel({ letter, onClose, onEdit }) {
+function LetterViewPanel({ letter, identity, onClose, onEdit }) {
+  const isAuthor = !letter.author || letter.author === identity
+
   return (
     <div
       className="fixed inset-0 bg-ink/80 flex items-center justify-center p-4 z-50"
@@ -185,27 +199,32 @@ function LetterViewPanel({ letter, onClose, onEdit }) {
         <div className="flex gap-3 pt-8 mt-4 border-t border-ink/10">
           <button
             onClick={onClose}
-            className="flex-1 py-3.5 rounded-full border border-ink/20 font-semibold text-sm"
+            className={`py-3.5 rounded-full border border-ink/20 font-semibold text-sm ${
+              isAuthor ? 'flex-1' : 'w-full'
+            }`}
           >
             Close
           </button>
-          <button
-            onClick={onEdit}
-            className="flex-1 py-3.5 rounded-full bg-gold font-semibold text-sm"
-          >
-            Edit
-          </button>
+          {isAuthor && (
+            <button
+              onClick={onEdit}
+              className="flex-1 py-3.5 rounded-full bg-gold font-semibold text-sm"
+            >
+              Edit
+            </button>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-function LetterForm({ letter, partnerNames, onClose, onSaved }) {
+function LetterForm({ letter, partnerNames, identity, onClose, onSaved }) {
   const [title, setTitle] = useState(letter?.title || '')
   const [date, setDate] = useState(letter?.date || '')
   const [content, setContent] = useState(letter?.content || '')
-  const [recipient, setRecipient] = useState(letter?.recipient || partnerNames[0] || '')
+  const defaultRecipient = partnerNames.find((n) => n !== identity) || partnerNames[0] || ''
+  const [recipient, setRecipient] = useState(letter?.recipient || defaultRecipient)
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e) {
@@ -214,6 +233,10 @@ function LetterForm({ letter, partnerNames, onClose, onSaved }) {
     setSaving(true)
 
     const payload = { title, date, content, recipient: recipient || null }
+    // author is set once, when the letter is first created — never
+    // overwritten on later edits.
+    if (!letter) payload.author = identity || null
+
     const { error } = letter
       ? await supabase.from('letters').update(payload).eq('id', letter.id)
       : await supabase.from('letters').insert(payload)
@@ -258,7 +281,7 @@ function LetterForm({ letter, partnerNames, onClose, onSaved }) {
         {partnerNames.length > 0 && (
           <div>
             <label className="text-xs font-semibold text-ink/60">
-              to:
+              Para kanino ang letter na ito?
             </label>
             <select
               value={recipient}
