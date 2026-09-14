@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
-import { getSavedIdentity, saveIdentity } from './utils'
 
 import Onboarding from './components/Onboarding.jsx'
 import Navigation from './components/Navigation.jsx'
@@ -35,7 +34,8 @@ export default function App() {
     }
 
     setSettings(data || null)
-    setIdentity(getSavedIdentity())
+    // identity intentionally NOT restored from storage —
+    // the gate should ask again on every fresh visit/reload.
     setLoading(false)
   }
 
@@ -44,7 +44,6 @@ export default function App() {
   }
 
   function handleIdentityPicked(name) {
-    saveIdentity(name)
     setIdentity(name)
   }
 
@@ -81,7 +80,7 @@ export default function App() {
   const pages = {
     home: <Home settings={settings} identity={identity} />,
     scrapbook: <Scrapbook />,
-    letters: <Letters />,
+    letters: <Letters settings={settings} identity={identity} />,
     story: <Story settings={settings} />,
     time: <Time settings={settings} />,
   }
