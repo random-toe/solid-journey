@@ -3,11 +3,23 @@ import { supabase } from '../supabaseClient'
 import { formatDate } from '../utils'
 import DatePicker from '../components/DatePicker.jsx'
 
-export default function Letters() {
+export default function Letters({ settings, identity }) {
   const [letters, setLetters] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingLetter, setEditingLetter] = useState(null)
+  const [viewingLetter, setViewingLetter] = useState(null)
+
+  const partnerNames = [settings?.partner_one_name, settings?.partner_two_name].filter(
+    Boolean
+  )
+
+  // Only show letters addressed to whoever is currently logged in.
+  // Letters saved before this feature existed have no recipient yet —
+  // those stay visible to everyone rather than disappearing.
+  const visibleLetters = letters.filter(
+    (l) => !l.recipient || l.recipient === identity
+  )
 
   useEffect(() => {
     loadLetters()
@@ -27,6 +39,16 @@ export default function Letters() {
 
   function handleAddClick() {
     setEditingLetter(null)
+    setShowForm(true)
+  }
+
+  function handleViewClick(letter) {
+    setViewingLetter(letter)
+  }
+
+  function handleEditFromView() {
+    setEditingLetter(viewingLetter)
+    setViewingLetter(null)
     setShowForm(true)
   }
 
@@ -67,21 +89,26 @@ export default function Letters() {
           <p className="text-center text-sm text-paper/50 py-8">loading...</p>
         )}
 
-        {!loading && letters.length === 0 && (
+        {!loading && visibleLetters.length === 0 && (
           <p className="text-center text-sm text-paper/50 py-8">
             No letters yet — write your first one.
           </p>
         )}
 
         {!loading &&
-          letters.map((letter) => (
+          visibleLetters.map((letter) => (
             <div key={letter.id} className="p-4 flex items-start gap-3">
               <span className="text-gold mt-0.5">✉️</span>
-              <div className="flex-1">
-                <p className="font-semibold text-sm">{letter.title}</p>
+              <button
+                onClick={() => handleViewClick(letter)}
+                className="flex-1 text-left"
+              >
+                <p className="font-semibold text-sm hover:text-gold transition-colors">
+                  {letter.title}
+                </p>
                 <p className="text-xs text-paper/50">{formatDate(letter.date)}</p>
-              </div>
-              <div className="flex gap-3 text-xs">
+              </button>
+              <div className="flex gap-3 text-xs shrink-0 pt-0.5">
                 <button
                   onClick={() => handleEditClick(letter)}
                   className="text-gold hover:underline"
@@ -99,9 +126,18 @@ export default function Letters() {
           ))}
       </div>
 
+      {viewingLetter && (
+        <LetterViewPanel
+          letter={viewingLetter}
+          onClose={() => setViewingLetter(null)}
+          onEdit={handleEditFromView}
+        />
+      )}
+
       {showForm && (
         <LetterForm
           letter={editingLetter}
+          partnerNames={partnerNames}
           onClose={() => setShowForm(false)}
           onSaved={handleSaved}
         />
@@ -110,10 +146,66 @@ export default function Letters() {
   )
 }
 
-function LetterForm({ letter, onClose, onSaved }) {
+// ── Read-only view panel — opened by tapping a letter's title ──
+function LetterViewPanel({ letter, onClose, onEdit }) {
+  return (
+    <div
+      className="fixed inset-0 bg-ink/80 flex items-center justify-center p-4 z-50"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className="bg-paper text-ink rounded-2xl w-full max-w-lg p-8 max-h-[80vh] overflow-y-auto">
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <h2 className="font-serif text-3xl leading-snug">{letter.title}</h2>
+          <button
+            onClick={onClose}
+            className="shrink-0 text-ink/40 hover:text-ink text-2xl leading-none mt-1"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        <p className="font-serif italic text-base text-gold-dark mb-1">
+          {formatDate(letter.date)}
+        </p>
+
+        {letter.recipient && (
+          <p className="text-xs text-ink/40 mb-6">for {letter.recipient}</p>
+        )}
+        {!letter.recipient && <div className="mb-6" />}
+
+        <p className="whitespace-pre-wrap leading-relaxed text-ink/80 text-[15px]">
+          {letter.content || (
+            <span className="text-ink/40 italic">This letter has no content yet.</span>
+          )}
+        </p>
+
+        <div className="flex gap-3 pt-8 mt-4 border-t border-ink/10">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3.5 rounded-full border border-ink/20 font-semibold text-sm"
+          >
+            Close
+          </button>
+          <button
+            onClick={onEdit}
+            className="flex-1 py-3.5 rounded-full bg-gold font-semibold text-sm"
+          >
+            Edit
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LetterForm({ letter, partnerNames, onClose, onSaved }) {
   const [title, setTitle] = useState(letter?.title || '')
   const [date, setDate] = useState(letter?.date || '')
   const [content, setContent] = useState(letter?.content || '')
+  const [recipient, setRecipient] = useState(letter?.recipient || partnerNames[0] || '')
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e) {
@@ -121,7 +213,7 @@ function LetterForm({ letter, onClose, onSaved }) {
     if (!title || !date) return
     setSaving(true)
 
-    const payload = { title, date, content }
+    const payload = { title, date, content, recipient: recipient || null }
     const { error } = letter
       ? await supabase.from('letters').update(payload).eq('id', letter.id)
       : await supabase.from('letters').insert(payload)
@@ -162,6 +254,25 @@ function LetterForm({ letter, onClose, onSaved }) {
             <DatePicker value={date} onChange={setDate} />
           </div>
         </div>
+
+        {partnerNames.length > 0 && (
+          <div>
+            <label className="text-xs font-semibold text-ink/60">
+              to:
+            </label>
+            <select
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              className="w-full mt-1 px-3 py-2 rounded-lg border border-ink/10 bg-paper-light focus:outline-none focus:ring-2 focus:ring-gold"
+            >
+              {partnerNames.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="text-xs font-semibold text-ink/60">Letter</label>
