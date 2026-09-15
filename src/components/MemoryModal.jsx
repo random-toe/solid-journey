@@ -120,6 +120,11 @@ export default function MemoryModal({ memory, onClose, onSaved }) {
             >
               <option value="just because">Just because</option>
               <option value="milestone">Milestone</option>
+              <option value="first">First</option>
+              <option value="birthday">Birthday</option>
+              <option value="anniversary">Anniversary</option>
+              <option value="trip">Trip</option>
+              <option value="date">Date</option>
             </select>
           </div>
         </div>

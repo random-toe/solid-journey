@@ -27,7 +27,7 @@
     opacity: 1;
   }
   100% {
-    transform: translateY(-160px) scale(1.2);
+    transform: translateY(-300px) scale(1.2);
     opacity: 0;
   }
 }
@@ -35,5 +35,5 @@
 .floating-heart {
   position: absolute;
   pointer-events: none;
-  animation: float-heart 1.4s ease-out forwards;
+  animation: float-heart 3s ease-out forwards;
 }

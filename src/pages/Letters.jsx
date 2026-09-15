@@ -281,7 +281,7 @@ function LetterForm({ letter, partnerNames, identity, onClose, onSaved }) {
         {partnerNames.length > 0 && (
           <div>
             <label className="text-xs font-semibold text-ink/60">
-              Para kanino ang letter na ito?
+              To:
             </label>
             <select
               value={recipient}
