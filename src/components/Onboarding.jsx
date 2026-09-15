@@ -168,7 +168,7 @@ function IdentityGate({ settings, onIdentityPicked }) {
         <p className="text-xs tracking-[0.2em] uppercase text-rose font-semibold mb-3">
           a little archive of us
         </p>
-        <h1 className="font-serif text-2xl mb-6">sino ka?</h1>
+        <h1 className="font-serif text-2xl mb-6">hello! who are u?</h1>
 
         <div className="space-y-3">
           {names.map((name) => (

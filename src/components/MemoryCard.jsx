@@ -3,6 +3,11 @@ import { formatDate } from '../utils'
 const KIND_LABELS = {
   'just because': 'Just because',
   milestone: 'Milestone',
+  first : 'First',
+  anniversary : 'Anniversary',
+  birthday : 'Birthday',
+  trip : 'Trip',
+  date : 'Date'
 }
 
 export default function MemoryCard({ memory, onEdit, onRemove }) {
