@@ -49,6 +49,32 @@ export default function MusicPlayer() {
   const youtubeId = provider === 'YouTube' ? getYouTubeId(current.url) : null
   const spotifyInfo = provider === 'Spotify' ? getSpotifyInfo(current.url) : null
 
+  // Player event callbacks (onStateChange, playback_update) are registered
+  // once when the player is first created, so they close over whatever
+  // `songs`/`index` were at that moment — stale forever after. These refs
+  // stay in sync on every render so "song ended → play next" always reads
+  // the CURRENT song list, not the one from when the player was built.
+  const songsRef = useRef(songs)
+  const indexRef = useRef(index)
+  useEffect(() => {
+    songsRef.current = songs
+  }, [songs])
+  useEffect(() => {
+    indexRef.current = index
+  }, [index])
+
+  // Ref-safe "advance to next song" — used inside player event callbacks
+  // instead of handleNext(), which is safe to call from JSX but NOT safe
+  // to call from a callback registered once at player-creation time.
+  function playNextFromCallback() {
+    if (songsRef.current.length === 0) return
+    setIndex((prev) => (prev + 1) % songsRef.current.length)
+  }
+
+  // Tracks the last known Spotify playback position, used to tell a real
+  // "track ended" apart from the viewer just pausing near the start.
+  const spotifyLastPositionRef = useRef(0)
+
   // ── Load songs from Supabase ───────────────────────────
   useEffect(() => {
     loadSongs()
@@ -107,6 +133,9 @@ export default function MusicPlayer() {
         },
         onStateChange: (e) => {
           setIsPlaying(e.data === window.YT.PlayerState.PLAYING)
+          if (e.data === window.YT.PlayerState.ENDED) {
+            playNextFromCallback()
+          }
         },
       },
     })
@@ -169,6 +198,7 @@ export default function MusicPlayer() {
     const uri = `spotify:${info.type}:${info.id}`
 
     if (spotifyControllerRef.current) {
+      spotifyLastPositionRef.current = 0
       spotifyControllerRef.current.loadUri(uri)
       spotifyControllerRef.current.play()
       return
@@ -181,9 +211,26 @@ export default function MusicPlayer() {
       { uri },
       (controller) => {
         spotifyControllerRef.current = controller
+        spotifyLastPositionRef.current = 0
         controller.addListener('ready', () => controller.play())
         controller.addListener('playback_update', (e) => {
-          setIsPlaying(!e.data.isPaused)
+          const { isPaused, position, duration } = e.data
+          setIsPlaying(!isPaused)
+
+          // Spotify's embed API has no explicit "track ended" event —
+          // when a track finishes, playback pauses and position snaps
+          // back to 0. The lastPosition check avoids mistaking "just
+          // pressed pause near the very start" for the track ending.
+          if (
+            isPaused &&
+            position === 0 &&
+            duration > 0 &&
+            spotifyLastPositionRef.current > duration * 0.5
+          ) {
+            playNextFromCallback()
+          }
+
+          spotifyLastPositionRef.current = position
         })
       }
     )
