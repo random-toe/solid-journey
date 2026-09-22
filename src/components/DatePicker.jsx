@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import YearMonthDayPicker from './YearmonthdayPicker.jsx'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -33,6 +34,7 @@ function formatDisplay(str) {
 // value: "yyyy-mm-dd" string (or ''), onChange: (str) => void
 export default function DatePicker({ value, onChange, placeholder = 'Select a date' }) {
   const [open, setOpen] = useState(false)
+  const [showJumpPicker, setShowJumpPicker] = useState(false)
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 288, maxHeight: 400 })
   const selected = toDateOnly(value)
   const [viewDate, setViewDate] = useState(selected || new Date())
@@ -73,7 +75,10 @@ export default function DatePicker({ value, onChange, placeholder = 'Select a da
   }
 
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      setShowJumpPicker(false)
+      return
+    }
     updatePosition()
 
     function handleClickOutside(e) {
@@ -167,82 +172,101 @@ export default function DatePicker({ value, onChange, placeholder = 'Select a da
             }}
             className="z-[9999] bg-rose-light border-2 border-rose-dark/30 rounded-2xl shadow-2xl p-4"
           >
-            {/* header */}
-            <div className="flex items-center justify-between mb-3">
-              <button
-                type="button"
-                onClick={() => goToMonth(-1)}
-                className="w-8 h-8 flex items-center justify-center rounded-full border border-ink/15 text-ink/70 hover:bg-ink/5 hover:text-gold-dark transition-colors"
-                aria-label="Previous month"
-              >
-                ‹
-              </button>
-              <p className="font-serif text-base text-rose-dark">
-                {MONTH_NAMES[month]} {year}
-              </p>
-              <button
-                type="button"
-                onClick={() => goToMonth(1)}
-                className="w-8 h-8 flex items-center justify-center rounded-full border border-ink/15 text-ink/70 hover:bg-ink/5 hover:text-gold-dark transition-colors"
-                aria-label="Next month"
-              >
-                ›
-              </button>
-            </div>
-
-            {/* day labels */}
-            <div className="grid grid-cols-7 gap-1 mb-1">
-              {DAY_LABELS.map((d) => (
-                <div
-                  key={d}
-                  className="text-center text-[10px] uppercase tracking-wide text-rose-dark/60 py-1"
-                >
-                  {d}
-                </div>
-              ))}
-            </div>
-
-            {/* day cells */}
-            <div className="grid grid-cols-7 gap-1">
-              {cells.map((day, i) =>
-                day === null ? (
-                  <div key={`blank-${i}`} />
-                ) : (
+            {showJumpPicker ? (
+              <YearMonthDayPicker
+                initialDate={viewDate}
+                onCancel={() => setShowJumpPicker(false)}
+                onSelect={(picked) => {
+                  setViewDate(picked)
+                  onChange(toDateString(picked))
+                  setShowJumpPicker(false)
+                  setOpen(false)
+                }}
+              />
+            ) : (
+              <>
+                {/* header */}
+                <div className="flex items-center justify-between mb-3">
                   <button
-                    key={day}
                     type="button"
-                    onClick={() => handleSelectDay(day)}
-                    className={`h-9 rounded-full text-sm border-2 font-medium transition-colors ${
-                      isSelected(day)
-                        ? 'bg-gold border-gold text-ink font-semibold'
-                        : isToday(day)
-                        ? 'border-gold text-gold-dark font-semibold'
-                        : 'border-rose-dark/40 text-rose-dark hover:border-rose-dark hover:bg-white/60'
-                    }`}
+                    onClick={() => goToMonth(-1)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-ink/15 text-ink/70 hover:bg-ink/5 hover:text-gold-dark transition-colors"
+                    aria-label="Previous month"
                   >
-                    {day}
+                    ‹
                   </button>
-                )
-              )}
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowJumpPicker(true)}
+                    className="font-serif text-base text-rose-dark hover:underline underline-offset-4 decoration-dotted"
+                  >
+                    {MONTH_NAMES[month]} {year}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToMonth(1)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-ink/15 text-ink/70 hover:bg-ink/5 hover:text-gold-dark transition-colors"
+                    aria-label="Next month"
+                  >
+                    ›
+                  </button>
+                </div>
 
-            {/* footer */}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-ink/10">
-              <button
-                type="button"
-                onClick={handleClear}
-                className="text-xs text-rose font-semibold hover:underline"
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={handleToday}
-                className="text-xs text-gold-dark font-semibold hover:underline"
-              >
-                Today
-              </button>
-            </div>
+                {/* day labels */}
+                <div className="grid grid-cols-7 gap-1 mb-1">
+                  {DAY_LABELS.map((d) => (
+                    <div
+                      key={d}
+                      className="text-center text-[10px] uppercase tracking-wide text-rose-dark/60 py-1"
+                    >
+                      {d}
+                    </div>
+                  ))}
+                </div>
+
+                {/* day cells */}
+                <div className="grid grid-cols-7 gap-1">
+                  {cells.map((day, i) =>
+                    day === null ? (
+                      <div key={`blank-${i}`} />
+                    ) : (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => handleSelectDay(day)}
+                        className={`h-9 rounded-full text-sm border-2 font-medium transition-colors ${
+                          isSelected(day)
+                            ? 'bg-gold border-gold text-ink font-semibold'
+                            : isToday(day)
+                            ? 'border-gold text-gold-dark font-semibold'
+                            : 'border-rose-dark/40 text-rose-dark hover:border-rose-dark hover:bg-white/60'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                {/* footer */}
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-ink/10">
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className="text-xs text-rose font-semibold hover:underline"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleToday}
+                    className="text-xs text-gold-dark font-semibold hover:underline"
+                  >
+                    Today
+                  </button>
+                </div>
+              </>
+            )}
           </div>,
           document.body
         )}
