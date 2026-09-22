@@ -99,3 +99,10 @@ export function clearIdentity() {
     // no-op
   }
 }
+
+export function scrollFieldIntoView(e) {
+  const el = e.target
+  setTimeout(() => {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, 300)
+}

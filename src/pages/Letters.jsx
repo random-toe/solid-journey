@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
-import { formatDate } from '../utils'
+import { formatDate, scrollFieldIntoView } from '../utils'
 import DatePicker from '../components/DatePicker.jsx'
 
 export default function Letters({ settings, identity }) {
@@ -265,6 +265,7 @@ function LetterForm({ letter, partnerNames, identity, onClose, onSaved }) {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            onFocus={scrollFieldIntoView}
             placeholder="To you, on a Tuesday"
             className="w-full mt-1 px-3 py-2 rounded-lg border border-ink/10 bg-paper-light focus:outline-none focus:ring-2 focus:ring-gold"
             required
@@ -281,7 +282,7 @@ function LetterForm({ letter, partnerNames, identity, onClose, onSaved }) {
         {partnerNames.length > 0 && (
           <div>
             <label className="text-xs font-semibold text-ink/60">
-              To:
+              Para kanino ang letter na ito?
             </label>
             <select
               value={recipient}
@@ -302,6 +303,7 @@ function LetterForm({ letter, partnerNames, identity, onClose, onSaved }) {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
+            onFocus={scrollFieldIntoView}
             rows={6}
             placeholder="Write your letter..."
             className="w-full mt-1 px-3 py-2 rounded-lg border border-ink/10 bg-paper-light focus:outline-none focus:ring-2 focus:ring-gold resize-none"
