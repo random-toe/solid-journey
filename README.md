@@ -198,8 +198,8 @@ archive-of-us/
 - [x] Letters panel
 - [x] Story panel
 - [x] Time panel (timer, countdown, tap-tap hearts)
-- [ ] Floating music player (curated YouTube/Spotify links, next/prev only)
-- [ ] Responsive pass for mobile browsers (iOS/Android)
+- [x] Floating music player (curated YouTube/Spotify links, next/prev only)
+- [x] Responsive pass for mobile browsers (iOS/Android)
 
 ## Notes on access
 
