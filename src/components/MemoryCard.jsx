@@ -1,16 +1,14 @@
+import { useState } from 'react'
 import { formatDate } from '../utils'
+import MemoryViewPanel from './MemoryViewpanel'
 
 const KIND_LABELS = {
   'just because': 'Just because',
   milestone: 'Milestone',
-  first : 'First',
-  anniversary : 'Anniversary',
-  birthday : 'Birthday',
-  trip : 'Trip',
-  date : 'Date'
 }
 
 export default function MemoryCard({ memory, onEdit, onRemove }) {
+  const [viewing, setViewing] = useState(false)
   const kindLabel = KIND_LABELS[memory.kind] || memory.kind || 'Just because'
 
   return (
@@ -33,17 +31,16 @@ export default function MemoryCard({ memory, onEdit, onRemove }) {
         <p className="text-[10px] tracking-widest uppercase text-rose font-semibold">
           {kindLabel}
         </p>
-        <p className="font-serif font-bold text-lg leading-snug mt-0.5">
+        <button
+          type="button"
+          onClick={() => setViewing(true)}
+          className="font-serif font-bold text-lg leading-snug mt-0.5 text-left hover:text-gold-dark underline decoration-dotted decoration-ink/30 underline-offset-4"
+        >
           {memory.title}
-        </p>
+        </button>
         <p className="font-serif italic text-sm text-gold-dark mt-0.5">
           {formatDate(memory.date)}
         </p>
-        {memory.note && (
-          <p className="text-sm text-ink/70 mt-2 whitespace-pre-wrap">
-            {memory.note}
-          </p>
-        )}
       </div>
 
       <div className="flex justify-end gap-3 mt-3 pt-2 border-t border-ink/10 text-xs">
@@ -54,6 +51,10 @@ export default function MemoryCard({ memory, onEdit, onRemove }) {
           Remove
         </button>
       </div>
+
+      {viewing && (
+        <MemoryViewPanel memory={memory} onClose={() => setViewing(false)} />
+      )}
     </div>
   )
 }
