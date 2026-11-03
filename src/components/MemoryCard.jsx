@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { formatDate } from '../utils'
-import MemoryViewPanel from './MemoryViewPanel'
+import MemoryViewPanel from './MemoryViewpanel'
 
 const KIND_LABELS = {
   'just because': 'Just because',
